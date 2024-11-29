@@ -57,6 +57,23 @@ app.post("/add-productByAdmin", async (req, res) => {
   res.send(result);
 });
 
+// Getting pet data
+
+// Add a route to fetch all products/pet data
+app.get("/get-productsByAdmin", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const products = await userCollection.find({}).toArray(); // Fetch all documents from the collection
+    res.send(products);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to fetch products", error });
+  }
+});
+
+
 
 // Product Delete 
 app.delete("/deleteProduct/:productId", async (req, res) => {
@@ -93,124 +110,125 @@ app.put("/update-user", async (req, res) => {
 
 
 
-function getCurrentDateTime() {
-  const currentDate = new Date(); 
-  return currentDate.toLocaleString();
-}
+// function getCurrentDateTime() {
+//   const currentDate = new Date(); 
+//   return currentDate.toLocaleString();
+// }
 // Comment for a particular product....
-app.post("/add-comment/:toolId", async (req, res) => {
-  function generateFiveDigitNumber() {
-    const min = 10000;
-    const max = 99999;
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+// app.post("/add-comment/:toolId", async (req, res) => {
+//   function generateFiveDigitNumber() {
+//     const min = 10000;
+//     const max = 99999;
+//     return Math.floor(Math.random() * (max - min + 1)) + min;
+//   }
 
-  try {
-    const userId = generateFiveDigitNumber();
-    const commentTime = getCurrentDateTime();
-    const { toolId } = req.params;
-    const commentAndRating = req.body;
-    const tool = await userCollection.findOneAndUpdate(
-      { _id: new ObjectId(toolId) },
-      { $push: { comments: { userId: userId, commentAndRating, timeOfComment: commentTime, reviews: [] } } },
-      { returnOriginal: false }
-    );
+//   try {
+//     const userId = generateFiveDigitNumber();
+//     const commentTime = getCurrentDateTime();
+//     const { toolId } = req.params;
+//     const commentAndRating = req.body;
+//     const tool = await userCollection.findOneAndUpdate(
+//       { _id: new ObjectId(toolId) },
+//       { $push: { comments: { userId: userId, commentAndRating, timeOfComment: commentTime, reviews: [] } } },
+//       { returnOriginal: false }
+//     );
 
-    if (!tool) {
-      return res.status(404).json({ message: "Tool not found" });
-    }
-    res.send(tool);
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+//     if (!tool) {
+//       return res.status(404).json({ message: "Tool not found" });
+//     }
+//     res.send(tool);
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
 // Comment deleted by admin
-app.delete("/delete-comment/:toolId/:commentId", async (req, res) => {
-  try {
-    const { toolId, commentId } = req.params;
-    const tool = await userCollection.findOneAndUpdate(
-      {
-        _id: new ObjectId(toolId),
-        "comments.userId": parseInt(commentId) // Match comment by its custom commentId
-      },
-      {
-        $pull: {
-          comments: { userId: parseInt(commentId) } // Remove the matched comment
-        }
-      },
-      { returnOriginal: false }
-    );
+// app.delete("/delete-comment/:toolId/:commentId", async (req, res) => {
+//   try {
+//     const { toolId, commentId } = req.params;
+//     const tool = await userCollection.findOneAndUpdate(
+//       {
+//         _id: new ObjectId(toolId),
+//         "comments.userId": parseInt(commentId) // Match comment by its custom commentId
+//       },
+//       {
+//         $pull: {
+//           comments: { userId: parseInt(commentId) } // Remove the matched comment
+//         }
+//       },
+//       { returnOriginal: false }
+//     );
 
-    if (!tool) {
-      return res.status(404).json({ message: "Tool or comment not found" });
-    }
+//     if (!tool) {
+//       return res.status(404).json({ message: "Tool or comment not found" });
+//     }
 
-    res.send(tool);
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+//     res.send(tool);
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
 
 
 
 
 // Review for a particular comment
-app.post("/add-review/:toolId", async (req, res) => {
-  try {
-    const { toolId } = req.params;
-    const { repliedCommentId, reviewerName, reviewerComment, reviewTime } = req.body;
-    const tool = await userCollection.findOneAndUpdate(
-      { 
-        _id: new ObjectId(toolId),
-        "comments.userId": repliedCommentId
-      },
-      { 
-        $push: { 
-          "comments.$.reviews": { repliedCommentId, reviewerName,reviewerComment,  reviewTime } // Update the matched comment
-        }
-      },
-      { returnOriginal: false }
-    );
 
-    if (!tool) {
-      return res.status(404).json({ message: "Tool or comment not found" });
-    }
-    res.send(tool);
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+// app.post("/add-review/:toolId", async (req, res) => {
+//   try {
+//     const { toolId } = req.params;
+//     const { repliedCommentId, reviewerName, reviewerComment, reviewTime } = req.body;
+//     const tool = await userCollection.findOneAndUpdate(
+//       { 
+//         _id: new ObjectId(toolId),
+//         "comments.userId": repliedCommentId
+//       },
+//       { 
+//         $push: { 
+//           "comments.$.reviews": { repliedCommentId, reviewerName,reviewerComment,  reviewTime } // Update the matched comment
+//         }
+//       },
+//       { returnOriginal: false }
+//     );
+
+//     if (!tool) {
+//       return res.status(404).json({ message: "Tool or comment not found" });
+//     }
+//     res.send(tool);
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
 
 // Delete review by admin
-app.post("/delete-review/:toolId/:commentId", async (req, res) => {
-  try {
-    const { toolId, commentId } = req.params;
-    const {reviewDataToDelete} = req.body;
-console.log(req.body);
-    const tool = await userCollection.findOneAndUpdate(
-      {
-        _id: new ObjectId(toolId),
-        "comments.userId": parseInt(commentId)
-      },
-      {
-        $pull: {
-          "comments.$[outer].reviews": {reviewerComment: reviewDataToDelete}
-        }
-      },
-      {
-        arrayFilters: [{ "outer.userId": parseInt(commentId) }],
-        returnOriginal: false
-      }
-    );
+// app.post("/delete-review/:toolId/:commentId", async (req, res) => {
+//   try {
+//     const { toolId, commentId } = req.params;
+//     const {reviewDataToDelete} = req.body;
+// console.log(req.body);
+//     const tool = await userCollection.findOneAndUpdate(
+//       {
+//         _id: new ObjectId(toolId),
+//         "comments.userId": parseInt(commentId)
+//       },
+//       {
+//         $pull: {
+//           "comments.$[outer].reviews": {reviewerComment: reviewDataToDelete}
+//         }
+//       },
+//       {
+//         arrayFilters: [{ "outer.userId": parseInt(commentId) }],
+//         returnOriginal: false
+//       }
+//     );
 
-    if (!tool) {
-      return res.status(404).json({ message: "Tool or comment not found" });
-    }
-    res.send(tool);
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+//     if (!tool) {
+//       return res.status(404).json({ message: "Tool or comment not found" });
+//     }
+//     res.send(tool);
+//   } catch (error) {
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
 
 // Shelton user authentication
 app.post("/signup", async (req, res) => {
