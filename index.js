@@ -75,6 +75,32 @@ app.get("/get-productsByAdmin", async (req, res) => {
 
 
 
+app.get("/get-productById/:id", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const { id } = req.params; // Get the ID from the URL parameters
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid product ID format" });
+    }
+
+    const product = await userCollection.findOne({ _id: new ObjectId(id) }); // Query the database for the product by ID
+
+    if (!product) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    res.send(product); // Send the product data
+  } catch (error) {
+    res.status(500).send({ message: "Failed to fetch product", error });
+  }
+});
+
+
+
 // Product Delete 
 app.delete("/deleteProduct/:productId", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
