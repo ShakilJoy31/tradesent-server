@@ -38,6 +38,8 @@ connectWithRetry();
 const userCollection = client.db("test").collection("users");
 const placedProducts = client.db("test").collection("userAndProducts");
 const authentication = client.db("test").collection("authentication");
+
+const petOrder = client.db("test").collection("petOrder");
 async function run() {
   try {
     await client.connect();clearImmediate
@@ -57,7 +59,58 @@ app.post("/add-productByAdmin", async (req, res) => {
   res.send(result);
 });
 
+
+
+// pet order
+app.post("/add-pet-order", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  const product = req.body;
+  const result = await petOrder.insertOne(product);
+  res.send(result);
+});
+
+app.get("/get-pet-orders", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const products = await petOrder.find({}).toArray(); // Fetch all documents from the collection
+    res.send(products);
+  } catch (error) {
+    res.status(500).send({ message: "Failed to fetch products", error });
+  }
+});
 // Getting pet data
+
+
+
+app.delete("/delete-pet/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate the ID
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid user ID" });
+    }
+
+    // Attempt to delete the user
+    const result = await petOrder.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    res.send({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error during deletion:", error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+
 
 // Add a route to fetch all products/pet data
 app.get("/get-productsByAdmin", async (req, res) => {
@@ -107,6 +160,30 @@ app.put("/update-user", async (req, res) => {
   res.send(result);
 });
 
+
+app.get("/get-productById/:id", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    const { id } = req.params; // Get the ID from the URL parameters
+
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid product ID format" });
+    }
+
+    const product = await userCollection.findOne({ _id: new ObjectId(id) }); // Query the database for the product by ID
+
+    if (!product) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    res.send(product); // Send the product data
+  } catch (error) {
+    res.status(500).send({ message: "Failed to fetch product", error });
+  }
+});
 
 
 
@@ -230,7 +307,7 @@ app.put("/update-user", async (req, res) => {
 //   }
 // });
 
-// Shelton user authentication
+
 app.post("/signup", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
@@ -280,6 +357,58 @@ app.post("/login", async (req, res) => {
     res.status(500).send({ message: "Internal server error" });
   }
 });
+
+
+
+
+// Getting all users by admin
+app.get("/all-user", async (req, res) => {
+  try {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    // Fetch all users from the database
+    const users = await authentication.find({}).toArray(); // Assuming 'authentication' is your database model
+
+    if (!users || users.length === 0) {
+      return res.status(404).send({ message: "No users found" }); // No users in the database
+    }
+
+    // Successfully retrieved users
+    res.send({ message: "Users fetched successfully", users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+// Delete particular user by admin
+
+app.delete("/delete-user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate the ID
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send({ message: "Invalid user ID" });
+    }
+
+    // Attempt to delete the user
+    const result = await authentication.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: "User not found" });
+    }
+
+    res.send({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error during deletion:", error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+});
+
+
 
 
 app.listen(port, () => {
