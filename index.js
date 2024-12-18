@@ -126,6 +126,52 @@ app.get("/get-productsByAdmin", async (req, res) => {
   }
 });
 
+app.delete("/delete-pet-admin/:id", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  const { id } = req.params; // Extract product ID from request params
+
+  try {
+    const result = await userCollection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 1) {
+      res.status(200).send({ message: "Product deleted successfully" });
+    } else {
+      res.status(404).send({ message: "Product not found" });
+    }
+  } catch (error) {
+    res.status(500).send({ message: "Failed to delete product", error });
+  }
+});
+
+app.put("/update-pet-admin/:id", async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  const { id } = req.params; // Extract product ID from request params
+  const updatedData = req.body; // Get updated data from request body
+
+  try {
+    const result = await userCollection.updateOne(
+      { _id: new ObjectId(id) }, // Find product by ID
+      { $set: updatedData } // Update product with new data
+    );
+
+    if (result.matchedCount === 1) {
+      res.status(200).send({ message: "Product updated successfully" });
+    } else {
+      res.status(404).send({ message: "Product not found" });
+    }
+  } catch (error) {
+    res.status(500).send({ message: "Failed to update product", error });
+  }
+});
+
+
+
 
 
 // Product Delete 
